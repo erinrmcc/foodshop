@@ -1,9 +1,14 @@
 var express = require('express');
 var server = express();
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
 
 var port = process.env.PORT || 8080;
 var mongoURI = process.env.MONGOURI || require('./secrets').mongoURI;
+
+//powerup -- middleware
+server.use(bodyParser.json()); //handle json data as part of the body
+server.use(bodyParser.urlencoded({extended: true}));
 
 //connect to the database
 mongoose.connect(mongoURI);
@@ -105,6 +110,83 @@ server.get('/foods/category/:categoryName', function(req, res){
     }
   });
 });
+
+//DELETE /foods/:id
+server.delete('/foods/:id', function(req, res){
+  Food.remove({_id: req.params.id}, function(err, documents){
+    if(err){
+      res.status(500).json({
+        msg: err
+      });
+    } else {
+      res.status(200).json({
+        msg: 'Successfully deleted'
+      });
+    }
+  });
+})
+
+//PUT /foods/:id
+server.put('/foods/:id', function(req, res){
+  food.findOneAndUpdate({_id: req.params.id}, req.body, function(err, documents){
+    if(err){
+      res.status(500).json({
+        msg: err
+      });
+    } else {
+      res.status(200).json({
+        msg: 'Succsesfully updated'
+      });
+    }
+  });
+});
+
+//POST /foods
+server.post('/foods', function(req, res){
+  var food = new Food(req.body);
+  console.log(req.body);
+  food.save(function(err, document){
+    if(err){
+      res.status(500).json({
+        msg: err
+      });
+    } else {
+      res.status(201).json({
+        msg: 'Successfully created'
+      });
+    }
+  });
+});
+
+//GET  /foods/price/:dollarAmount
+server.get('/foods/price/:dollarAmount', function(req, res){
+  Food.find({price: req.params.dollarAmount}, function(err, documents){
+    if(err){
+      res.status(500).json({
+        msg: err
+      });
+    } else {
+      res.status(200).json({
+        foods: documents
+      });
+    }
+  });
+});
+
+//DELETE /foods/category/:category
+server.delete('/foods/category/:category', function(req, res){
+  Food.remove({category: req.params.category}, function(err, documents){
+    if(err) {
+      res.status(500).json({
+        msg: err
+      });
+    } else {
+      res.status(200).json({
+        msg: 'Successfully removed category'
+      });
+    }
+  });
+})
 
 
 server.listen(port, function(){
